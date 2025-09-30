@@ -20,14 +20,7 @@ from alnn.strategies import passive_training, sasla_strategy, us_classification,
 from alnn.trainer import evaluate_model, get_loss_fn, make_dataloader, train_one_epoch
 from torch import nn
 
-
-
-# ---------------------------------------------------------------------------
-# Determinism helpers
-# ---------------------------------------------------------------------------
-
 def set_global_seed(seed: int) -> None:
-    """Seed Python, NumPy, and PyTorch for reproducibility."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -35,25 +28,15 @@ def set_global_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-
-# ---------------------------------------------------------------------------
-# Dataclasses
-# ---------------------------------------------------------------------------
-
-
+    
 def float_list(values: Sequence[str]) -> List[float]:
     return [float(v) for v in values]
-
 
 def ensure_positive(name: str, value: int) -> None:
     if value <= 0:
         raise ValueError(f"{name} must be > 0, got {value}")
 
-
 class _BufferedLogger:
-    """In-memory logger used for grid-search trials."""
-
     def __init__(self) -> None:
         self.curve_rows: List[Dict[str, Any]] = []
         self.subset_rows: List[Dict[str, Any]] = []
@@ -91,13 +74,6 @@ class _BufferedLogger:
             writer.writeheader()
             for row in rows:
                 writer.writerow(row)
-
-
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -196,18 +172,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--pca_dim", type=int, default=None)
     return parser
 
-
 def parse_args() -> RunnerConfig:
     parser = build_parser()
     args = parser.parse_args()
-
     if args.num_hidden_layers != 1:
         warnings.warn(
-            "Only one hidden layer is supported. Clamping --num_hidden_layers to 1.",
             RuntimeWarning,
         )
         args.num_hidden_layers = 1
-
     ensure_positive("--batch_size", args.batch_size)
     ensure_positive("--epochs", args.epochs)
     ensure_positive("--patience", args.patience)
@@ -316,9 +288,6 @@ def parse_args() -> RunnerConfig:
         num_runs=args.num_runs,
     )
     return config
-
-
-
 
 def passive_grid_search(
     config: RunnerConfig,
@@ -475,7 +444,6 @@ def _make_subset_bundle(
         meta=bundle.meta,
         pca=bundle.pca,
     )
-
 
 def sasla_grid_search(
     config: RunnerConfig,
@@ -684,12 +652,6 @@ def us_grid_search(
     summary["best_epochs"] = epochs_best
     return model, summary
 
-
-# ---------------------------------------------------------------------------
-# Orchestration
-# ---------------------------------------------------------------------------
-
-
 def make_run_directory(config: RunnerConfig) -> Path:
     run_dir = (
         config.out_dir
@@ -782,12 +744,6 @@ def run(config: RunnerConfig) -> None:
     if combined_rows:
         summary_path = run_root / f"curves_seeds_{base_seed}_to_{base_seed + config.num_runs - 1}.csv"
         _write_csv(summary_path, combined_rows)
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
 
 def main() -> None:
     config = parse_args()

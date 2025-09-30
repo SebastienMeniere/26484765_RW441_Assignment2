@@ -65,7 +65,6 @@ def train_one_epoch(
             loss = loss_fn(logits, yb)
         if not torch.isfinite(loss):
             warnings.warn(
-                "Encountered non-finite loss; stopping epoch early. Consider lowering the learning rate.",
                 RuntimeWarning,
             )
             stop_early = True

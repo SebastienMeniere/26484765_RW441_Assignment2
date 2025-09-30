@@ -38,7 +38,6 @@ class ComputeTracker:
 
 @dataclass
 class EarlyStopping:
-    """Track loss improvements and trigger when patience is exceeded."""
 
     patience: int
     mode: str = "min"

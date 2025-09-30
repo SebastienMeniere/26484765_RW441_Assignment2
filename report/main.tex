@@ -5,6 +5,9 @@
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
@@ -46,7 +49,11 @@ All models use randomly partitioned sets: train, validation and test of the full
 either start with the full training set and select only the points that are most important.  
 
 Pool-based active learning iteratively trains a model, scores unlabeled candidates with an acquisition function, and queries the most informative points. For classification, popular scores include least-confidence, margin, and entropy; for regression/function approximation, uncertainty is commonly defined via predictive variance (e.g., Bayesian models, Gaussian processes, or model ensembles), and sensitivity/experimental-design criteria target regions with high curvature or expected error reduction. 
-\paragraph*{Uncertainty-based Acquisition}
+\paragraph*{Uncertainty-based active learning}
+Uncertainty sampling for active learning as defined by [ALUS] uses a pool-based approach. The training data $D_train$ is partitioned into a labeled set $D_label$ and an unlabled set $D_unlabeled$ also known as pools. The learner iteratively selects an infromative instance(s) from the $D_unlabeled$ using some utility criterion to incorperate into $D_labeled$. After aquiring the new instance(s) the learner is retrained on the modified $D_labeled$ before repeating the process. The aquisition, retrain process continues until the budget $B$ is exhausted. Algorithm 1 shows the general pool-based active learning process. 
+
+
+\paragraph{Classification}
 Pool-based active learning assumes a small labeled set $L$ and a larger unlabeled pool $U$. At each round, the learner selects an informative unlabeled instance by a utility criterion, queries its label from an oracle, augments $L$, prunes from $U$, and retrains the model; the process continues until a budget $B$ is exhausted (Algorithm 1)  . Uncertainty can be measured by entropy, maximum conditional (least confidence), or **margin**; the margin criterion selects instances with the smallest difference between the top two class probabilities $\mathrm{P}_\theta(y_m|x)-\mathrm{P}_\theta(y_n|x)$  . The **evidence-based** perspective further distinguishes two kinds of uncertain instances, **conflicting-evidence** versus **insufficient-evidence**, using multiplicative or related rankings of per-class evidences $E^{+1}(x)$ and $E^{-1}(x)$; within the most uncertain set $S$, conflicting-evidence prefers large $E^{+1}E^{-1}$ and insufficient-evidence prefers small $E^{+1}E^{-1}$  .
 \paragraph*{Sensitivity-based Acquisition}
 Selective learning aims to focus training on patterns most likely to refine decision boundaries, typically those near the region of uncertainty. Prior work motivates that concentrating training on patterns close to the decision boundary can improves generalization compared to fixed label set training (FLS). SASLA defines pattern informativeness as the norm of the NN output sensitivity vector with respect to small input perturbations: $\iota(p) := \lVert \tilde{S}_o^{(p)} \rVert$, with a suggested max-norm over output units for classification. The output–input sensitivity matrix element $S^{(p)}_{o z; k i}$ is given for sigmoidal networks and depends on forward activations and weights, enabling a Jacobian-style computation across the network layers. SASLA executes in epochs; at a subset selection interval (often each epoch), the algorithm computes informativeness for all candidate patterns and retains only those exceeding a scaled average informativeness threshold controlled by a subset selection constant*$\tau$ (paper uses $\alpha$ in $[0,1]$): patterns with informativeness larger than $(1-\alpha)$ times the average are selected. A conservative $\alpha$ close to one selects more patterns initially; as training progresses, more patterns become uninformative and the training subset shrinks. If $\alpha=1$, the method reduces to fixed-set learning (FSL)  . The SASLA loop alternates between training on the current subset until a termination criterion, recomputing sensitivities for all candidate patterns, and updating the next subset accordingly; the paper recommends selecting a new subset at each epoch and starts from the full candidate set as the initial subset.
@@ -69,6 +76,8 @@ little to no modifications. For regression
 \section*{Results}
 % 
 
-
+\section*{References}
+All code can be found at on my public git repository at 
+% \url{https://github.com/SebastienMeniere/26484765_RW441_Assignment2}
 
 \end{document}

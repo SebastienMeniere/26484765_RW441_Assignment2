@@ -485,22 +485,126 @@ def us_regression(
 
 
 
+# def compute_sensitivities(
+#     model: nn.Module,
+#     loss_fn: nn.Module,
+#     X: torch.Tensor,
+#     y: torch.Tensor,
+#     indices: Sequence[int],
+#     config: RunnerConfig,
+#     tracker: ComputeTracker,
+#     max_samples: Optional[int] = None,
+# ) -> Dict[int, float]:
+#     """Compute per-sample sensitivities while respecting shared budgets."""
+
+#     model.eval()
+#     device = config.device
+#     param_count = sum(p.numel() for p in model.parameters()) or 1
+
+#     chosen = list(indices)
+#     if max_samples is not None and max_samples < len(chosen):
+#         rng = random.Random(getattr(config, "seed", 0))
+#         chosen = rng.sample(chosen, max_samples)
+
+#     mode = getattr(config, "sasla_sensitivity_mode", "auto").lower()
+#     input_norm = getattr(config, "sasla_input_norm", "l1").lower()
+
+#     def is_classification_loss(fn: nn.Module) -> bool:
+#         return isinstance(fn, (nn.CrossEntropyLoss, nn.BCEWithLogitsLoss))
+
+#     # approx the paper's calculation of the cost -- i know this isnt right
+#     # x0 = X[0 : 1].to(device).detach().requires_grad_(True)
+#     # out = model(x0)
+#     # K = out.shape[1]
+
+#     # if not tracker.can_backprop(len(X) // config.batch_size * K) :
+#     #     return None
+#     # tracker.record_backprop(len(X) // config.batch_size * K, optimizer_step=False)
+    
+#     use_paper = (mode == "paper") or (mode == "auto" and is_classification_loss(loss_fn))
+#     use_loss_grad = (mode == "loss_grad") or (mode == "auto" and not is_classification_loss(loss_fn))
+
+#     sensitivities: Dict[int, float] = {}
+
+#     for idx in chosen:
+#         if use_paper:
+#             outputs_per_sample = config.num_classes if config.num_classes > 1 else 1
+#             if not tracker.can_forward(1) or not tracker.can_backprop(outputs_per_sample):
+#                 break
+#             xi = X[idx : idx + 1].to(device).detach().requires_grad_(True)
+#             tracker.record_forward(1)
+#             with torch.enable_grad():
+#                 out = model(xi)
+#                 if out.ndim == 1:
+#                     out = out.unsqueeze(1)
+#                 K = out.shape[1]
+                
+#                 if not tracker.can_backprop(1):
+#                     break
+                
+#                 if K > 1:
+#                     probs = torch.softmax(out, dim=1)
+#                 else:
+#                     probs = torch.sigmoid(out)
+#                 per_out_vals = []
+#                 for k in range(K):
+#                     grad = torch.autograd.grad(
+#                         probs[:, k].sum(),
+#                         xi,
+#                         retain_graph=(k < K - 1),
+#                         allow_unused=False,
+#                     )[0]
+#                     if input_norm == "l2":
+#                         val = torch.sqrt((grad * grad).sum(dim=1)) / math.sqrt(grad.shape[1])
+#                     else:
+#                         val = grad.abs().sum(dim=1) / grad.shape[1]
+#                     per_out_vals.append(val.item())
+#                 # tracker.record_backprop(1, optimizer_step=False)
+#                 model.zero_grad(set_to_none=True)
+#                 sensitivities[idx] = float(max(per_out_vals))
+#                 continue
+
+#         if not use_loss_grad:
+#             continue
+        
+#         xi = X[idx : idx + 1].to(device)
+#         yi = y[idx : idx + 1].to(device)
+#         model.zero_grad(set_to_none=True)
+#         tracker.record_forward(1)
+#         logits = model(xi)
+#         if isinstance(loss_fn, nn.CrossEntropyLoss):
+#             loss = loss_fn(logits, yi.long())
+#         else:
+#             loss = loss_fn(logits, yi)
+#         if not tracker.can_backprop(1):
+#                 break
+#         tracker.record_backprop(1, optimizer_step=False)
+#         loss.backward()
+#         sq_norm = 0.0
+#         for param in model.parameters():
+#             if param.grad is not None:
+#                 sq_norm += param.grad.pow(2).sum().item()
+#         sensitivities[idx] = math.sqrt(sq_norm / param_count)
+
+#     return sensitivities
+
 def compute_sensitivities(
     model: nn.Module,
     loss_fn: nn.Module,
     X: torch.Tensor,
     y: torch.Tensor,
     indices: Sequence[int],
-    config: RunnerConfig,
-    tracker: ComputeTracker,
+    config,
+    tracker,
     max_samples: Optional[int] = None,
 ) -> Dict[int, float]:
-    """Compute per-sample sensitivities while respecting shared budgets."""
+    """Compute per-sample sensitivities in batches (faster)."""
 
     model.eval()
     device = config.device
     param_count = sum(p.numel() for p in model.parameters()) or 1
 
+    # maybe subsample pool
     chosen = list(indices)
     if max_samples is not None and max_samples < len(chosen):
         rng = random.Random(getattr(config, "seed", 0))
@@ -508,83 +612,75 @@ def compute_sensitivities(
 
     mode = getattr(config, "sasla_sensitivity_mode", "auto").lower()
     input_norm = getattr(config, "sasla_input_norm", "l1").lower()
+    batch_size = getattr(config, "batch_size", 128)
 
     def is_classification_loss(fn: nn.Module) -> bool:
         return isinstance(fn, (nn.CrossEntropyLoss, nn.BCEWithLogitsLoss))
 
-    # approx the paper's calculation of the cost -- i know this isnt right
-    # x0 = X[0 : 1].to(device).detach().requires_grad_(True)
-    # out = model(x0)
-    # K = out.shape[1]
-
-    # if not tracker.can_backprop(len(X) // config.batch_size * K) :
-    #     return None
-    # tracker.record_backprop(len(X) // config.batch_size * K, optimizer_step=False)
-    
     use_paper = (mode == "paper") or (mode == "auto" and is_classification_loss(loss_fn))
     use_loss_grad = (mode == "loss_grad") or (mode == "auto" and not is_classification_loss(loss_fn))
 
     sensitivities: Dict[int, float] = {}
 
-    for idx in chosen:
-        if use_paper:
-            outputs_per_sample = config.num_classes if config.num_classes > 1 else 1
-            if not tracker.can_forward(1) or not tracker.can_backprop(outputs_per_sample):
-                break
-            xi = X[idx : idx + 1].to(device).detach().requires_grad_(True)
-            tracker.record_forward(1)
-            with torch.enable_grad():
-                out = model(xi)
-                if out.ndim == 1:
-                    out = out.unsqueeze(1)
-                K = out.shape[1]
-                
-                if not tracker.can_backprop(1):
-                    break
-                
-                if K > 1:
-                    probs = torch.softmax(out, dim=1)
-                else:
-                    probs = torch.sigmoid(out)
-                per_out_vals = []
-                for k in range(K):
-                    grad = torch.autograd.grad(
-                        probs[:, k].sum(),
-                        xi,
-                        retain_graph=(k < K - 1),
-                        allow_unused=False,
-                    )[0]
-                    if input_norm == "l2":
-                        val = torch.sqrt((grad * grad).sum(dim=1)) / math.sqrt(grad.shape[1])
-                    else:
-                        val = grad.abs().sum(dim=1) / grad.shape[1]
-                    per_out_vals.append(val.item())
-                tracker.record_backprop(1, optimizer_step=False)
-                model.zero_grad(set_to_none=True)
-                sensitivities[idx] = float(max(per_out_vals))
-                continue
+    # iterate in mini-batches
+    for start in range(0, len(chosen), batch_size):
+        batch_idx = chosen[start:start + batch_size]
+        xb = X[batch_idx].to(device).detach().requires_grad_(True)
+        yb = y[batch_idx].to(device)
 
-        if not use_loss_grad:
-            continue
-        
-        xi = X[idx : idx + 1].to(device)
-        yi = y[idx : idx + 1].to(device)
-        model.zero_grad(set_to_none=True)
-        tracker.record_forward(1)
-        logits = model(xi)
-        if isinstance(loss_fn, nn.CrossEntropyLoss):
-            loss = loss_fn(logits, yi.long())
-        else:
-            loss = loss_fn(logits, yi)
-        if not tracker.can_backprop(1):
-                break
-        tracker.record_backprop(1, optimizer_step=False)
-        loss.backward()
-        sq_norm = 0.0
-        for param in model.parameters():
-            if param.grad is not None:
-                sq_norm += param.grad.pow(2).sum().item()
-        sensitivities[idx] = math.sqrt(sq_norm / param_count)
+        tracker.record_forward(config.batch_size)
+        with torch.enable_grad():
+            out = model(xb)
+            if out.ndim == 1:
+                out = out.unsqueeze(1)
+            K = out.shape[1]
+
+            if use_paper:
+                # class probs
+                probs = torch.softmax(out, dim=1) if K > 1 else torch.sigmoid(out)
+
+                # take top-1 class prob per sample (1 backward per batch)
+                top_idx = probs.argmax(dim=1)
+                selected = probs[torch.arange(len(batch_idx), device=device), top_idx].sum()
+
+                if not tracker.can_backprop(len(X)/config.batch_size):
+                    break
+                grad = torch.autograd.grad(selected, xb, create_graph=False)[0]  # [B, I]
+
+                if input_norm == "l2":
+                    vals = grad.pow(2).sum(dim=1).sqrt() / math.sqrt(grad.shape[1])
+                else:
+                    vals = grad.abs().sum(dim=1) / grad.shape[1]
+
+                for j, i in enumerate(batch_idx):
+                    sensitivities[i] = float(vals[j].item())
+
+                tracker.record_backprop(len(X)/config.batch_size, optimizer_step=False)
+                model.zero_grad(set_to_none=True)
+
+            elif use_loss_grad:
+                # one backward per batch
+                if isinstance(loss_fn, nn.CrossEntropyLoss):
+                    loss = loss_fn(out, yb.long())
+                else:
+                    loss = loss_fn(out, yb)
+
+                if not tracker.can_backprop(len(X)/config.batch_size):
+                    break
+                loss.backward()
+
+                # ||∂loss/∂θ|| per sample is heavy, so we approximate:
+                # use global param norm per batch, divide equally
+                sq_norm = 0.0
+                for p in model.parameters():
+                    if p.grad is not None:
+                        sq_norm += p.grad.pow(2).sum().item()
+                val = math.sqrt(sq_norm / param_count)
+                for i in batch_idx:
+                    sensitivities[i] = val
+
+                tracker.record_backprop(len(X)/config.batch_size, optimizer_step=False)
+                model.zero_grad(set_to_none=True)
 
     return sensitivities
 

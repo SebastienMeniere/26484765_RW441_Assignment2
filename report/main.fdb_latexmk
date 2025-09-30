@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1759066717.20661 "/Users/sebastienm/A3v2/report/main.tex" "main.pdf" "main" 1759066718.04581 0
-  "/Users/sebastienm/A3v2/report/main.tex" 1759066716.9774 9224 84a4306eb4ade6f80c04bc62b3f757ca ""
+["pdflatex"] 1759086147.86263 "/Users/sebastienm/A3v2/26484765_RW441_Assignment2/report/main.tex" "main.pdf" "main" 1759086148.5793 2
+  "/Users/sebastienm/A3v2/26484765_RW441_Assignment2/report/main.tex" 1759086147.6219 10080 441a82853e2704e7d9b5fe1ac7858ed2 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -35,6 +35,9 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/adobe/times/ptmrc7t.vf" 1136768653 1948 7330aeef3af211edff3b35fb2c12a0fd ""
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/adobe/times/ptmri7t.vf" 1136768653 1384 a9d8adaf491ce34e5fba99dc7bbe5f39 ""
   "/usr/local/texlive/2025/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty" 1160617237 26750 ce139c05a983e19ddca355b43e29c395 ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty" 1160617237 3457 d9077efe6b74c5a094199256af8d7d9a ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/algorithms/algorithm.sty" 1251330371 3249 15763257e50278eef5db1952ccde229c ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/algorithms/algorithmic.sty" 1251330371 9318 793e9d5a71e74e730d97f6bf5d7e2bca ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amsfonts.sty" 1359763108 5949 3f3fd50a8cc94c3d4cbf4fc66cd3df1c ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amssymb.sty" 1359763108 13829 94730e64147574077f8ecfea9bb69af4 ""
@@ -49,6 +52,7 @@
   "/usr/local/texlive/2025/texmf-dist/tex/latex/base/textcomp.sty" 1738182759 2846 e26604d3d895e65d874c07f30c291f3f ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/cite/cite.sty" 1425427964 26218 19edeff8cdc2bcb704e8051dc55eb5a7 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty" 1579991033 13886 d1306dcf79a944f6988e688c1785f9ce ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/float/float.sty" 1137110151 6749 16d2656a1984957e674b149555f1ea1d ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/color.cfg" 1459978653 1213 620bba36b25224fa9b7e1ccb4ecb76fd ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg" 1465944070 1224 978390e9c2234eab29404bc21b268d1e ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-def/pdftex.def" 1713382759 19440 9da9dcbb27470349a580fca7372d454b ""
@@ -66,8 +70,8 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1758459539 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1758459484 3345739 521690eb7ec3a0f643299fa7ee3d5bac ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "main.aux" 1759066717.97195 32 044b7f8fc9779af7531264e0c5c84b6d "pdflatex"
-  "main.tex" 1759066716.9774 9224 84a4306eb4ade6f80c04bc62b3f757ca ""
+  "main.aux" 1759086148.5013 147 04f6dc958188d037f18d62400ec8ed6a "pdflatex"
+  "main.tex" 1759086147.6219 10080 441a82853e2704e7d9b5fe1ac7858ed2 ""
   (generated)
   "main.aux"
   "main.log"

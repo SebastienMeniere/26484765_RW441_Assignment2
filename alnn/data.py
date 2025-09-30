@@ -6,7 +6,6 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from alnn.runner import RunnerConfig
-
 @dataclass
 class DatasetBundle:
     X_train: np.ndarray

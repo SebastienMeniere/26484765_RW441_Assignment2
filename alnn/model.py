@@ -12,19 +12,9 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from torch import nn
-
 from alnn.runner import RunnerConfig
 
-
 def make_model(config: RunnerConfig) -> nn.Module:
-    """Create a shallow network that always returns logits.
-
-    Hidden layers use a sigmoid activation for every task. For classification we keep
-    the output linear so downstream losses/metrics can operate on raw logits;
-    `classification_probabilities` converts them to probabilities (sigmoid for
-    binary, softmax for multi-class). Regression keeps the linear output as well.
-    """
-
     output_dim = 1 if config.task == "regression" or config.num_classes == 1 else config.num_classes
     hidden_activation = nn.Sigmoid()
 

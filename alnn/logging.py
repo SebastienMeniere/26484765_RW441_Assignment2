@@ -12,7 +12,6 @@ from sklearn.discriminant_analysis import StandardScaler
 from alnn.runner import RunnerConfig
 
 def config_to_json_dict(config: RunnerConfig) -> Dict[str, Any]:
-    """Return a JSON-serialisable dictionary for the run configuration."""
     data = asdict(config)
     # Replace objects that JSON cannot serialise directly.
     data["out_dir"] = str(config.out_dir)
@@ -20,7 +19,6 @@ def config_to_json_dict(config: RunnerConfig) -> Dict[str, Any]:
     data["device"] = str(config.device)
     data.pop("generator", None)
     return data
-
 class RunLogger:
     def __init__(self, run_dir: Path):
         self.run_dir = run_dir
